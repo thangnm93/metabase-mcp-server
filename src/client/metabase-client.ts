@@ -31,6 +31,13 @@ export class MetabaseClient {
       timeout: 30000, // 30 second timeout to prevent hanging requests
     });
 
+    if (config.extraHeaders) {
+      for (const [key, value] of Object.entries(config.extraHeaders)) {
+        this.axiosInstance.defaults.headers.common[key] = value;
+      }
+      this.logInfo(`Applying ${Object.keys(config.extraHeaders).length} extra header(s).`);
+    }
+
     if (config.apiKey) {
       this.logInfo("Using Metabase API Key for authentication.");
       this.axiosInstance.defaults.headers.common["X-API-Key"] = config.apiKey;

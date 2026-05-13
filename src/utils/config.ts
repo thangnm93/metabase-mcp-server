@@ -7,6 +7,22 @@ import { MetabaseConfig } from "../types/metabase.js";
 /**
  * Load configuration from environment variables
  */
+const HEADER_PREFIX = "METABASE_HEADER_";
+
+function loadExtraHeaders(): Record<string, string> | undefined {
+  const headers: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith(HEADER_PREFIX) && value !== undefined) {
+      // METABASE_HEADER_X_CUSTOM_HEADER → X-Custom-Header
+      const headerName = key.slice(HEADER_PREFIX.length).replace(/_/g, "-");
+      headers[headerName] = value;
+    }
+  }
+
+  return Object.keys(headers).length > 0 ? headers : undefined;
+}
+
 export function loadConfig(): MetabaseConfig {
   const url = process.env.METABASE_URL;
   const username = process.env.METABASE_USERNAME;
@@ -28,6 +44,7 @@ export function loadConfig(): MetabaseConfig {
     username,
     password,
     apiKey,
+    extraHeaders: loadExtraHeaders(),
   };
 }
 

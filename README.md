@@ -66,6 +66,23 @@ export METABASE_USERNAME=your_username
 export METABASE_PASSWORD=your_password
 ```
 
+**Extra Request Headers (Optional):**
+
+Use `METABASE_HEADER_<NAME>` to inject additional headers into every outgoing request — useful for reverse proxies, API gateways, or multi-tenant setups that require extra auth tokens or routing headers.
+
+The suffix is converted to a header name by replacing `_` with `-`:
+
+```bash
+# Adds "Authorization: Bearer <token>" to every request
+export METABASE_HEADER_AUTHORIZATION="Bearer your-token"
+
+# Adds "X-Tenant-Id: my-org"
+export METABASE_HEADER_X_TENANT_ID="my-org"
+
+# Adds "X-Api-Gateway-Key: secret"
+export METABASE_HEADER_X_API_GATEWAY_KEY="secret"
+```
+
 ### Optional Arguments
 
 The server supports command-line arguments to customize tool loading:
@@ -145,6 +162,24 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
       "env": {
         "METABASE_URL": "https://your-metabase-instance.com",
         "METABASE_API_KEY": "your_metabase_api_key"
+      }
+    }
+  }
+}
+```
+
+**With extra headers (e.g. behind a reverse proxy or API gateway):**
+```json
+{
+  "mcpServers": {
+    "metabase": {
+      "command": "npx",
+      "args": ["@cognitionai/metabase-mcp-server"],
+      "env": {
+        "METABASE_URL": "https://your-metabase-instance.com",
+        "METABASE_API_KEY": "your_metabase_api_key",
+        "METABASE_HEADER_AUTHORIZATION": "Bearer your-proxy-token",
+        "METABASE_HEADER_X_TENANT_ID": "my-org"
       }
     }
   }
