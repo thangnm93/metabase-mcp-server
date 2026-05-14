@@ -86,7 +86,7 @@ switch (filterOptions.mode) {
     console.error(`INFO: All tools loaded.`);
     break;
 }
-console.error(`INFO: PII filter: ${isPiiFilterEnabled() ? 'enabled' : 'disabled (METABASE_PII_FILTER=false)'}`);
+console.error(`INFO: PII filter: ${piiFilterEnabled ? 'enabled' : 'disabled (METABASE_PII_FILTER=false)'}`);
 
 // Start the server
 server.start({
