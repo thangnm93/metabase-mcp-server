@@ -131,6 +131,67 @@ describe('filterPii — nested structures', () => {
   });
 });
 
+describe('filterPii — Metabase query result structure', () => {
+  it('redacts values in rows when column name is a PII field', () => {
+    const input = {
+      data: {
+        cols: [{ name: 'id' }, { name: 'email' }, { name: 'password' }],
+        rows: [
+          [1, 'user@example.com', 'secret123'],
+          [2, 'other@test.com', 'hunter2'],
+        ],
+      },
+      status: 'completed',
+      row_count: 2,
+    };
+    const result = filterPii(input) as any;
+    expect(result.data.rows[0]).toEqual([1, '[REDACTED]', '[REDACTED]']);
+    expect(result.data.rows[1]).toEqual([2, '[REDACTED]', '[REDACTED]']);
+  });
+
+  it('preserves non-PII columns untouched', () => {
+    const input = {
+      data: {
+        cols: [{ name: 'id' }, { name: 'revenue' }, { name: 'region' }],
+        rows: [[1, 99000, 'Asia'], [2, 12000, 'EU']],
+      },
+      status: 'completed',
+    };
+    const result = filterPii(input) as any;
+    expect(result.data.rows[0]).toEqual([1, 99000, 'Asia']);
+    expect(result.data.rows[1]).toEqual([2, 12000, 'EU']);
+  });
+
+  it('still applies regex on non-PII-named columns if value matches', () => {
+    const input = {
+      data: {
+        cols: [{ name: 'info' }],
+        rows: [['contact: user@example.com']],
+      },
+      status: 'completed',
+    };
+    const result = filterPii(input) as any;
+    expect(result.data.rows[0]).toEqual(['[REDACTED]']);
+  });
+
+  it('preserves cols and other top-level fields unchanged', () => {
+    const input = {
+      data: {
+        cols: [{ name: 'id', base_type: 'type/Integer' }],
+        rows: [[1]],
+      },
+      status: 'completed',
+      row_count: 1,
+      running_time: 42,
+    };
+    const result = filterPii(input) as any;
+    expect(result.status).toBe('completed');
+    expect(result.row_count).toBe(1);
+    expect(result.running_time).toBe(42);
+    expect(result.data.cols).toEqual([{ name: 'id', base_type: 'type/Integer' }]);
+  });
+});
+
 describe('filterPiiFromToolResult', () => {
   it('parses JSON string, filters, and re-stringifies', () => {
     const input = JSON.stringify({ email: 'user@example.com', id: 1 });

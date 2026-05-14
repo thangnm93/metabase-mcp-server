@@ -21,19 +21,58 @@ function matchesPiiRegex(value: string): boolean {
   return PII_REGEXES.some(re => re.test(value));
 }
 
+function isMetabaseQueryResult(obj: Record<string, unknown>): boolean {
+  const data = obj.data as Record<string, unknown> | undefined;
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    Array.isArray(data.cols) &&
+    Array.isArray(data.rows)
+  );
+}
+
+function filterMetabaseQueryResult(obj: Record<string, unknown>): Record<string, unknown> {
+  const data = obj.data as Record<string, unknown>;
+  const cols = data.cols as Array<Record<string, unknown>>;
+  const rows = data.rows as unknown[][];
+
+  const colNames = cols.map(c => String(c.name ?? ''));
+
+  const filteredRows = rows.map(row =>
+    row.map((cell, i) => {
+      const colName = colNames[i] ?? '';
+      if (isPiiFieldName(colName)) return '[REDACTED]';
+      if (typeof cell === 'string' && matchesPiiRegex(cell)) return '[REDACTED]';
+      return cell;
+    })
+  );
+
+  return {
+    ...obj,
+    data: { ...data, rows: filteredRows },
+  };
+}
+
 export function filterPii(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(item => filterPii(item));
   }
 
   if (value !== null && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+
+    // Special handling for Metabase query results: rows are positional arrays,
+    // so we match values to column names from cols[] instead of object keys.
+    if (isMetabaseQueryResult(obj)) {
+      return filterMetabaseQueryResult(obj);
+    }
+
     const result: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    for (const [key, val] of Object.entries(obj)) {
       if (isPiiFieldName(key)) {
         result[key] = '[REDACTED]';
       } else {
-        const filtered = filterPii(val);
-        result[key] = filtered;
+        result[key] = filterPii(val);
       }
     }
     return result;
