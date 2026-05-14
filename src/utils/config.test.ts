@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { loadConfig, validateConfig } from './config.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { loadConfig, validateConfig, isPiiFilterEnabled } from './config.js';
 
 describe('loadConfig', () => {
   beforeEach(() => {
@@ -109,5 +109,32 @@ describe('validateConfig', () => {
     expect(() =>
       validateConfig({ url: 'https://metabase.example.com', apiKey: 'key' })
     ).not.toThrow();
+  });
+});
+
+describe('isPiiFilterEnabled', () => {
+  const original = process.env.METABASE_PII_FILTER;
+
+  afterEach(() => {
+    if (original === undefined) {
+      delete process.env.METABASE_PII_FILTER;
+    } else {
+      process.env.METABASE_PII_FILTER = original;
+    }
+  });
+
+  it('returns true when env var is not set', () => {
+    delete process.env.METABASE_PII_FILTER;
+    expect(isPiiFilterEnabled()).toBe(true);
+  });
+
+  it('returns true when env var is "true"', () => {
+    process.env.METABASE_PII_FILTER = 'true';
+    expect(isPiiFilterEnabled()).toBe(true);
+  });
+
+  it('returns false when env var is "false"', () => {
+    process.env.METABASE_PII_FILTER = 'false';
+    expect(isPiiFilterEnabled()).toBe(false);
   });
 });

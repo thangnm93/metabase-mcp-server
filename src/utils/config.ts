@@ -69,3 +69,10 @@ export function validateConfig(config: MetabaseConfig): void {
     throw new Error("Invalid Metabase URL format");
   }
 }
+
+/**
+ * Check if PII filtering is enabled
+ */
+export function isPiiFilterEnabled(): boolean {
+  return process.env.METABASE_PII_FILTER !== 'false';
+}
