@@ -1,6 +1,6 @@
 {
   "name": "@thangnm93/metabase-mcp-server",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A Model Context Protocol server for Metabase integration",
   "author": "Thang Nguyen <contact@thangnm.info>",
   "license": "MIT",
