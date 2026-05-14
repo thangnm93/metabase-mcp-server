@@ -101,8 +101,8 @@ describe('filterPii — nested structures', () => {
 
   it('recurses into arrays of objects', () => {
     expect(
-      filterPii([{ name: 'John', score: 99 }, { name: 'Jane', score: 87 }])
-    ).toEqual([{ name: '[REDACTED]', score: 99 }, { name: '[REDACTED]', score: 87 }]);
+      filterPii([{ email: 'john@example.com', score: 99 }, { email: 'jane@example.com', score: 87 }])
+    ).toEqual([{ email: '[REDACTED]', score: 99 }, { email: '[REDACTED]', score: 87 }]);
   });
 
   it('recurses into mixed nested structure', () => {

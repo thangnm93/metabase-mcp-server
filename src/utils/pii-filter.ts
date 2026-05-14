@@ -1,7 +1,7 @@
 const PII_FIELD_NAMES = new Set([
   'email', 'phone', 'mobile', 'password', 'passwd', 'secret', 'token',
   'ssn', 'credit_card', 'card_number', 'cvv', 'dob', 'date_of_birth',
-  'address', 'name', 'first_name', 'last_name', 'full_name', 'national_id',
+  'address', 'first_name', 'last_name', 'full_name', 'national_id',
   'passport', 'ip_address', 'latitude', 'longitude',
 ]);
 
