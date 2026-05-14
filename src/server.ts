@@ -13,6 +13,7 @@ import { parseToolFilterOptions } from "./utils/tool-filters.js";
 
 // Parse command line arguments for tool filtering
 const filterOptions = parseToolFilterOptions();
+const piiFilterEnabled = isPiiFilterEnabled();
 
 // Load and validate configuration
 const config = loadConfig();
@@ -50,7 +51,7 @@ server.addTool = function(toolConfig: any) {
     const originalExecute = restConfig.execute;
     restConfig.execute = async (...args: any[]) => {
       const result = await originalExecute(...args);
-      if (!isPiiFilterEnabled()) return result;
+      if (!piiFilterEnabled || typeof result !== 'string') return result;
       try {
         return filterPiiFromToolResult(result);
       } catch (e) {
