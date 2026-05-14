@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterPii } from './pii-filter.js';
+import { filterPii, filterPiiFromToolResult } from './pii-filter.js';
 
 describe('filterPii — field name detection (Layer 1)', () => {
   it('redacts value when key is "email"', () => {
@@ -128,5 +128,35 @@ describe('filterPii — nested structures', () => {
       '[REDACTED]',
       'world',
     ]);
+  });
+});
+
+describe('filterPiiFromToolResult', () => {
+  it('parses JSON string, filters, and re-stringifies', () => {
+    const input = JSON.stringify({ email: 'user@example.com', id: 1 });
+    const output = filterPiiFromToolResult(input);
+    expect(JSON.parse(output)).toEqual({ email: '[REDACTED]', id: 1 });
+  });
+
+  it('handles JSON array result', () => {
+    const input = JSON.stringify([{ email: 'a@b.com' }, { email: 'c@d.com' }]);
+    const output = filterPiiFromToolResult(input);
+    expect(JSON.parse(output)).toEqual([{ email: '[REDACTED]' }, { email: '[REDACTED]' }]);
+  });
+
+  it('applies regex directly on non-JSON string fallback', () => {
+    const input = 'User email: user@example.com';
+    expect(filterPiiFromToolResult(input)).toBe('[REDACTED]');
+  });
+
+  it('returns plain non-PII string unchanged', () => {
+    const input = 'No sensitive data here';
+    expect(filterPiiFromToolResult(input)).toBe('No sensitive data here');
+  });
+
+  it('does not throw on any valid string input', () => {
+    expect(() => filterPiiFromToolResult(JSON.stringify({ id: 1, title: 'safe' }))).not.toThrow();
+    expect(() => filterPiiFromToolResult('plain string')).not.toThrow();
+    expect(() => filterPiiFromToolResult('')).not.toThrow();
   });
 });

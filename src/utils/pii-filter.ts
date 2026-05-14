@@ -45,3 +45,17 @@ export function filterPii(value: unknown): unknown {
 
   return value;
 }
+
+export function filterPiiFromToolResult(result: string): string {
+  try {
+    const parsed = JSON.parse(result);
+    const filtered = filterPii(parsed);
+    return JSON.stringify(filtered, null, 2);
+  } catch {
+    // Not valid JSON — apply regex on the raw string directly
+    if (typeof result === 'string' && matchesPiiRegex(result)) {
+      return '[REDACTED]';
+    }
+    return result;
+  }
+}
